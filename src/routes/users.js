@@ -4,9 +4,10 @@ import prisma from "#/db.js";
 const router = express.Router();
 
 router.get("/:id", async (req, res, next) => {
+  const id = Number(req.params.id)
   const user = await prisma.users.findUnique({
     where: {
-      id: req.params.id,
+      id,
     },
   });
 
