@@ -3,16 +3,20 @@ import express from "express";
 import usersRoutes from "#/routes/users.js";
 import authRoutes from "#/routes/auth.js";
 
+// Middleware
+import authMiddleware from "../middleware/auth.js";
+
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(authMiddleware);
 
 app.use("/users", usersRoutes);
 app.use("/auth", authRoutes);
 
 app.get("/", async (req, res, next) => {
-  const users = await prisma.user.findMany();
+  const users = await prisma.users.findMany();
   console.log(users);
   res.send(users);
 });
