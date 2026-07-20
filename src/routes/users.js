@@ -1,5 +1,6 @@
 import express from "express";
 import prisma from "#/db.js";
+import util from "util"
 
 const router = express.Router();
 
@@ -20,7 +21,6 @@ router.post("/", async (req, res, next) => {
     `Creating new user: ${req.body.name} with email ${req.body.email}`,
   );
 
-  // Currently anyone can create a user, only admins should be able to
   const user = await prisma.users.create({
     data: {
       name: req.body.name,
@@ -35,13 +35,23 @@ router.post("/", async (req, res, next) => {
 router.delete("/:id", async (req, res, next) => {
   const id = Number(req.params.id);
   console.log(`Requested ID to DEL: ${id}`);
+  console.log(`Requesting user details: ${req.user}`);
+  const requestingUser = req.auth.user;
+  const role = requestingUser.role
+
+  if (role.toLowerCase() !== 'admin') {
+    return
+  }
+
+  // A01 VERTICAL PRIVILEGE ESCALATION - Currently anyone can create a user, only admins should be able to delete a user
+  return;
   const deletedUser = await prisma.users.delete({
     where: {
-      id
-    }
-  })
+      id,
+    },
+  });
 
-  res.json(deletedUser)
-})
+  res.json(deletedUser);
+});
 
 export default router;
