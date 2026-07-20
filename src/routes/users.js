@@ -35,24 +35,26 @@ router.post("/", async (req, res, next) => {
 router.delete("/:id", async (req, res, next) => {
   const id = Number(req.params.id);
   console.log(`Requested ID to DEL: ${id}`);
-  // console.log(`Requesting user details: ${req.user}`);
-  // const requestingUser = req.auth.user;
-  // const role = requestingUser.role;
 
-  // if (role.toLowerCase() !== "admin") {
-  //   res.sendStatus(401);
-  // }
+  console.log(req.auth.id);
 
-  // A01 VERTICAL PRIVILEGE ESCALATION - Currently anyone can create a user, only admins should be able to delete a user
-  return res.sendStatus(200);
-  return;
-  const deletedUser = await prisma.users.delete({
-    where: {
-      id,
-    },
-  });
+  try {
+    const requestingUser = await prisma.users.findUnique({
+      where: { id: req.auth.id },
+    });
 
-  res.json(deletedUser);
+    console.log(`Requesting user: ${requestingUser}`);
+
+    if (requestingUser.role !== "ADMIN") {
+      console.log("User does not have permission.");
+      return res.sendStatus(403);
+    } else {
+      console.log("User will be deleted.");
+      return res.sendStatus(200);
+    }
+  } catch (err) {
+    console.error(err);
+  }
 });
 
 export default router;

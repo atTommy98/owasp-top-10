@@ -29,3 +29,5 @@ The `jsonwebtoken` library gives access to three functions.
 `jwt.verify(token, secret, options)` - This is arguably the most important. It splits the token into it's parts, recomputes the signature from the header and payload it received and compares it to the attached signature. If they're different, it is an invalid JWT. If they're the same, it is valid. It will also check other claims to see if the token has expired or is valid. If all is good, it will return the decoded payload.
 
 `jwt.decode(token)` - Does the same as verify *without* checking the signature. May seem useless, but often used to read claims off an already trusted token. Must be used with caution as using decode instead of verify is a real security vulnerability.
+
+In the `auth.js` middleware I signed a JWT and attached it to req.auth, using Postman to send an authorisation header. In the `router.delete(/users/:id)` route, I used the id in req.auth to grab the user from the database as an example. From here, the auth.js middleware can be built up further.
