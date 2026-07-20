@@ -32,7 +32,7 @@ Created basic USERS routes where anybody could CRUD users. There is no authorisa
 When a user is able to move up the permission hierarchy. For example, a normal user accessess admin privileges such as being able to delete a resource when their role isn't allowed.
 
 **What did I do to address it?**
-Ensure user role and permission checks on the */users/delete* route.
+Ensure user role and permission checks on the */users/delete* route. For this to be possible, I had to setup some form of auth so that we know *who* is making the request. I chose JWT, specifically the 'jsonwebtoken' package rather than the 'express-jwt' package which simplifies the auth process. (See **Auth_Setup** doc for more information)
 
 ### Horizontal Privilege Escalation
 
