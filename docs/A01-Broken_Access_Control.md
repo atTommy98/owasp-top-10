@@ -25,3 +25,29 @@ Prevention of exploitation of Broken Access Control comes in the form of prevent
 - Use well-established toolkits or patterns that provide simple, declarative access controls.
 
 ## Exploring This Vulnerability (What I Did)
+Created basic USERS routes where anybody could CRUD users. There is no authorisation at all.
+
+### Vertical Privilege Escalation
+**What is it?**
+When a user is able to move up the permission hierarchy. For example, a normal user accessess admin privileges such as being able to delete a resource when their role isn't allowed.
+
+**What did I do to address it?**
+Ensure user role and permission checks on the */users/delete* route.
+
+### Horizontal Privilege Escalation
+
+### Insecure Direct Object Reference
+
+### Missing Ownership Checks
+
+### Forced Browsing
+
+### Callable Disabled Functionality
+
+### Parameter Manipulation
+
+### Bypassing Workflow Restrictions
+
+### Data Leakage
+
+### Accessing Resources After Permissions Change
