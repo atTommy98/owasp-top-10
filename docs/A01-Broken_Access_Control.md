@@ -35,6 +35,15 @@ When a user is able to move up the permission hierarchy. For example, a normal u
 Ensure user role and permission checks on the */users/delete* route. For this to be possible, I had to setup some form of auth so that we know *who* is making the request. I chose JWT, specifically the 'jsonwebtoken' package rather than the 'express-jwt' package which simplifies the auth process. (See **Auth_Setup** doc for more information)
 
 ### Horizontal Privilege Escalation
+**What is it?**
+If a user is able to gain access to another user's resources when they shouldn't be able to. It's an exploit of permissions that allows access to sensitive data or resources through a variety of routes. Commonly Insecure Direct Object Reference (IDOR, altering parameters), Cross Site Request Forgery (CSRF, abusing logged in users), Session Hijacking (Stealing tokens) and Credential Theft (Using leaked data).
+
+**What did I do to address it?**
+Created the route in `resources.js` that grabs a users information based on the requested ID. Then I asked myself:
+- Who does the requested resource belong to?
+- Who is requesting the resource?
+
+To handle this, we first check that the id is valid before using computational resource on DB requests. If it's ok, we grab the requesting user from auth and the requested user from the db. If we got some user information, we then want to know if the requesting user is either an admin **OR** the owner. If they are either, send the resource, otherwise return a 403, defaulting to a deny so the route is essentially whitelisted.
 
 ### Insecure Direct Object Reference
 

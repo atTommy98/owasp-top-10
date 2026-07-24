@@ -4,6 +4,7 @@ import express from "express";
 // Routes imports
 import usersRoutes from "#/routes/users.js";
 import authRoutes from "#/routes/auth.js";
+import resourcesRoutes from "#/routes/resources.js";
 
 // Middleware imports
 import authMiddleware from "../middleware/auth.js";
@@ -17,6 +18,7 @@ app.use(authMiddleware);
 // Route registration
 app.use("/users", usersRoutes);
 app.use("/auth", authRoutes);
+app.use("/resources", resourcesRoutes);
 
 // GET all users
 app.get("/", async (req, res, next) => {
