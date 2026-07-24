@@ -4,6 +4,7 @@ import util from "util";
 
 const router = express.Router();
 
+// GET user by ID
 router.get("/:id", async (req, res, next) => {
   const id = Number(req.params.id);
   console.log(`Requested ID to GET: ${id}`);
@@ -16,6 +17,7 @@ router.get("/:id", async (req, res, next) => {
   res.json(user);
 });
 
+// Create a user
 router.post("/", async (req, res, next) => {
   console.log(
     `Creating new user: ${req.body.name} with email ${req.body.email}`,
@@ -32,6 +34,7 @@ router.post("/", async (req, res, next) => {
   res.json(user);
 });
 
+// Delete a user by ID
 router.delete("/:id", async (req, res, next) => {
   const id = Number(req.params.id);
   console.log(`Requested ID to DEL: ${id}`);
@@ -45,6 +48,7 @@ router.delete("/:id", async (req, res, next) => {
 
     console.log(`Requesting user: ${requestingUser}`);
 
+    // A01 - Vertical Access Privilege
     if (requestingUser.role !== "ADMIN") {
       console.log("User does not have permission.");
       return res.sendStatus(403);

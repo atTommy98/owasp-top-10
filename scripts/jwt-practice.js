@@ -13,7 +13,7 @@ const signedToken = jwt.sign(
 
 // const signedToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.dQekFJn5YOnmxBbKEUrRjslnz6JCn7i6YZm9hKFkr_A'
 
-const verified = jwt.verify(signedToken, secret);
+const verifiedToken = jwt.verify(signedToken, secret);
 
 console.log(signedToken);
 console.log(verified);
