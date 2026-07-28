@@ -15,6 +15,16 @@ model Users {
   role      Role     @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  author    Posts[]
+}
+
+model Posts {
+  id        Int      @id @default(autoincrement())
+  authorId  Int
+  author    Users    @relation(fields: [authorId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum Role {

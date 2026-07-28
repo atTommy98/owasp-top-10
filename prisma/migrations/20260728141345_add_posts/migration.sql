@@ -1,0 +1,9 @@
+-- CreateTable
+CREATE TABLE "Posts" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "authorId" INTEGER NOT NULL,
+    "content" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Posts_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "Users" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);

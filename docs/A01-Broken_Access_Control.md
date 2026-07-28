@@ -45,7 +45,12 @@ Created the route in `resources.js` that grabs a users information based on the 
 
 To handle this, we first check that the id is valid before using computational resource on DB requests. If it's ok, we grab the requesting user from auth and the requested user from the db. If we got some user information, we then want to know if the requesting user is either an admin **OR** the owner. If they are either, send the resource, otherwise return a 403, defaulting to a deny so the route is essentially whitelisted.
 
-### Insecure Direct Object Reference
+### Insecure Direct Object Reference (IDOR)
+**What is it?**
+Similarly to Horizontal Privilege Escalation, IDOR is when a user changes an identity value to access some item or resource that they should not be allowed to receive. Specifically, IDOR is the mechanism behind Horizontal Privilege Escalation. For example, modifying an ID to view someone elses data is an IDOR vulnerability that resulted in Horizontal Privilege Escalation. Equally, an IDOR can result in vertical privilege escalation (Perhaps by changing `?file=report.pdf` to `?file=admin_config.php`).
+
+**What did I do to address it?**
+While this is already technically addressed in the `GET /resources/users/:id` route, I wanted to make sure that I understood an IDOR vulnerability from a perspective where the ID of the object differs from the owner (unlike the resources route) so I have created a new table `Posts` and will create some dummy data for some of the user's in my database. I then created another GET route at `/posts/:id` and created a similar vulnerability, fixing it shortly after.
 
 ### Missing Ownership Checks
 
