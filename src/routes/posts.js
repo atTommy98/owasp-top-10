@@ -38,6 +38,7 @@ router.post("/", async (req, res, next) => {
 router.get("/:id", async (req, res, next) => {
   const id = Number(req.params.id);
 
+  // Validity check first before db request
   if (typeof id !== "number" || Number.isNaN(id)) {
     return res.status(400).json({ error: "ID must be a valid number" });
   }
