@@ -129,6 +129,9 @@ router.delete("/:id", async (req, res, next) => {
     where: { id: req.auth.id },
   });
 
+  if (!requestingUser)
+    return res.status(404).json({ error: "Requesting User Not Found" });
+
   // CHECK OWNERSHIP BEFORE UPDATING - Key difference between the GET and DELETE
   const post = await prisma.posts.findUnique({
     where: { id },
