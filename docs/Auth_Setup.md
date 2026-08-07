@@ -51,5 +51,5 @@ claims off an already trusted token. Must be used with caution as using decode i
 vulnerability.
 
 In the `auth.js` middleware I signed a JWT and attached it to `req.auth`, using Postman to send an authorisation header.
-In the `router.delete(/users/:id)` route, I used the id in req.auth to grab the user from the database as an example.
-From here, the auth.js middleware can be built up further.
+In the `router.delete(/users/:id)` route, I used the `id` in `req.auth` to grab the user from the database as an example.
+From here, the `auth.js` middleware can be built up further.
