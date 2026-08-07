@@ -1,7 +1,6 @@
 import express from "express";
 import prisma from "#/db.js";
-import { loadPost } from "#/middleware/posts.js";
-import { requireOwnerOrAdmin } from "#/middleware/auth.js";
+import { loadPost, requirePostOwnerOrAdmin } from "#/middleware/posts.js";
 
 const router = express.Router();
 
