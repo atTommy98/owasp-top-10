@@ -1,5 +1,7 @@
 import express from "express";
 import prisma from "#/db.js";
+import { loadPost } from "#/middleware/posts.js";
+import { requireOwnerOrAdmin } from "#/middleware/auth.js";
 
 const router = express.Router();
 
@@ -36,7 +38,7 @@ router.post("/", async (req, res, next) => {
 });
 
 // Get a post by ID
-router.get("/:id", async (req, res, next) => {
+router.get("/:id", loadPost, async (req, res, next) => {
   const id = Number(req.params.id);
 
   // Validity check first before db request
@@ -65,7 +67,7 @@ router.get("/:id", async (req, res, next) => {
   return res.sendStatus(403);
 });
 
-router.patch("/:id", async (req, res, next) => {
+router.patch("/:id", loadPost, async (req, res, next) => {
   const id = Number(req.params.id);
   // Content to update post
   const { content } = req.body;
@@ -116,44 +118,18 @@ router.patch("/:id", async (req, res, next) => {
   return res.status(200).json(updatedPost);
 });
 
-router.delete("/:id", async (req, res, next) => {
-  const id = Number(req.params.id);
+router.delete("/:id", loadPost, requireOwnerOrAdmin, async (req, res, next) => {
+  const post = req.post;
 
-  // Validity check first before db request
-  if (typeof id !== "number" || Number.isNaN(id)) {
-    return res.status(400).json({ error: "ID must be a valid number" });
-  }
-
-  // Who is requesting to delete this resource?
-  const requestingUser = await prisma.users.findUnique({
-    where: { id: req.auth.id },
-  });
-
-  if (!requestingUser)
-    return res.status(404).json({ error: "Requesting User Not Found" });
-
-  // CHECK OWNERSHIP BEFORE UPDATING - Key difference between the GET and DELETE
-  const post = await prisma.posts.findUnique({
-    where: { id },
-  });
-
-  // If post doesn't exist, explicitly return error rather than having Prisma handle it
-  if (!post) return res.status(404).json({ error: "Not Found" });
-
-  // Is requesting user admin or owner of the resource
-  const isAdmin = requestingUser.role === "ADMIN";
-  const isOwner = requestingUser.id === post.authorId;
-  console.log(`Requesting user admin: ${isAdmin} and owner ${isOwner}`);
-
-  // Forbidden if not admin or owner, success otherwise
-  if (!isAdmin && !isOwner) return res.sendStatus(403);
-
-  // Update the post
+  // Delete the post
   const deletedPost = await prisma.posts.delete({
-    where: { id },
+    where: { id: post.id },
   });
 
-  return res.status(200).json(post);
+  // Return if successful
+  return res
+    .status(200)
+    .json({ post: deletedPost, msg: `Post ${post.id} successfully deleted` });
 });
 
 export default router;

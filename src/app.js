@@ -8,7 +8,7 @@ import resourcesRoutes from "#/routes/resources.js";
 import postsRoutes from "#/routes/posts.js";
 
 // Middleware imports
-import authMiddleware from "../middleware/auth.js";
+import { authMiddleware } from "./middleware/auth.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
