@@ -32,7 +32,7 @@ router.post("/", async (req, res, next) => {
   });
 
   console.log("Post successfully created!");
-  return res.status(201).json({ msg: "Post successfully created!" });
+  return res.status(201).json({ msg: "Post successfully created!", post });
 });
 
 // Get a post by ID
@@ -69,6 +69,13 @@ router.patch("/:id", async (req, res, next) => {
   const id = Number(req.params.id);
   // Content to update post
   const { content } = req.body;
+
+  if (!content || typeof content !== "string") {
+    return res
+      .status(400)
+      .json({ error: "Content required or content should be a valid string" });
+  }
+
   console.log(content);
 
   // Validity check first before db request
@@ -81,13 +88,16 @@ router.patch("/:id", async (req, res, next) => {
     where: { id: req.auth.id },
   });
 
+  if (!requestingUser)
+    return res.status(404).json({ error: "Requesting User Not Found" });
+
   // CHECK OWNERSHIP BEFORE UPDATING - Key difference between the GET and PATCH
   const post = await prisma.posts.findUnique({
     where: { id },
   });
 
   // If post doesn't exist, explicitly return error rather than having Prisma handle it
-  if (!post) return res.status(404).json({ error: "Not Found" });
+  if (!post) return res.status(404).json({ error: "Post Not Found" });
 
   // Is requesting user admin or owner of the resource
   const isAdmin = requestingUser.role === "ADMIN";
@@ -98,12 +108,12 @@ router.patch("/:id", async (req, res, next) => {
   if (!isAdmin && !isOwner) return res.sendStatus(403);
 
   // Update the post
-  const update = await prisma.posts.update({
+  const updatedPost = await prisma.posts.update({
     where: { id },
     data: { content: content },
   });
 
-  return res.status(200).json(post);
+  return res.status(200).json(updatedPost);
 });
 
 router.delete("/:id", async (req, res, next) => {
