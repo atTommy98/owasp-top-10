@@ -35,6 +35,7 @@ router.post("/", async (req, res, next) => {
   return res.status(201).json({ msg: "Post successfully created!" });
 });
 
+// Get a post by ID
 router.get("/:id", async (req, res, next) => {
   const id = Number(req.params.id);
 
@@ -62,6 +63,31 @@ router.get("/:id", async (req, res, next) => {
 
   // Deny by default
   return res.sendStatus(403);
+});
+
+router.patch("/:id", async (req, res, next) => {
+  const id = Number(req.params.id);
+
+  const { content } = req.body;
+
+  console.log(content);
+
+  const update = await prisma.posts.update({
+    where: { id },
+    data: { content: content },
+  });
+
+  return res.status(200).json(update);
+
+  // Validity check first before db request
+  if (typeof id !== "number" || Number.isNaN(id)) {
+    return res.status(400).json({ error: "ID must be a valid number" });
+  }
+
+  // Who is requesting this resource?
+  const requestingUser = await prisma.users.findUnique({
+    where: { id: req.auth.id },
+  });
 });
 
 export default router;

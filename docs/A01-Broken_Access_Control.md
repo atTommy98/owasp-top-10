@@ -60,8 +60,7 @@ the 'express-jwt' package which simplifies the auth process. (See **Auth_Setup**
 
 If a user is able to gain access to another user's resources when they shouldn't be able to. It's an exploit of
 permissions that allows access to sensitive data or resources through a variety of routes. Commonly Insecure Direct
-Object Reference (IDOR, altering parameters), Cross Site Request Forgery (CSRF, abusing logged in users), Session
-Hijacking (Stealing tokens) and Credential Theft (Using leaked data).
+Object Reference (IDOR, altering parameters) or Cross Site Request Forgery (CSRF, abusing logged in users).
 
 **What did I do to address it?**
 
@@ -80,8 +79,8 @@ a 403, defaulting to a deny so the route is essentially whitelisted.
 **What is it?**
 
 Similarly to Horizontal Privilege Escalation, IDOR is when a user changes an identity value to access some item or
-resource that they should not be allowed to receive. Specifically, IDOR is the mechanism behind Horizontal Privilege
-Escalation. For example, modifying an ID to view someone elses data is an IDOR vulnerability that resulted in Horizontal
+resource that they should not be allowed to receive. Specifically, IDOR is a mechanism behind Horizontal Privilege
+Escalation. For example, modifying an ID to view someone else's data is an IDOR vulnerability that resulted in Horizontal
 Privilege Escalation. Equally, an IDOR can result in vertical privilege escalation (Perhaps by changing
 `?file=report.pdf` to `?file=admin_config.php`).
 
@@ -93,6 +92,39 @@ resources route) so I have created a new table `Posts` and will create some dumm
 database. I then created another GET route at `/posts/:id` and created a similar vulnerability, fixing it shortly after.
 
 ### 4. Missing Ownership Checks
+
+**What is it?**
+
+Similarly to #3, Missing Ownership Checks have technically already been addressed on the read path. IDOR answers 'How did they reach the
+resource?', Horizontal Privilege Escalation answers 'What did they gain?' and Missing Ownership Check answers 'What's
+wrong in my code?'. Though it may seem like a separate item, really they're all part of the same thing which is an
+Access Control issue. They're separate concepts as they may not always coincide, such as the example above where
+changing `file=report.pdf` to `file=admin_config.php` is an IDOR producing **vertical escalation** rather than
+horizontal
+
+**What did I do to address it?**
+
+To further emphasise a Missing Ownership Check specifically, I created a `GET /posts` route, where there is no ID to
+tamper with (No IDOR to tamper with) which has a horizontal impact rather than vertical. I'm adding 3 routes to further
+demostrate this. They are `PATCH /posts/:id`, `GET /posts` amd `DELETE /posts/:id`.
+
+There are two ownership questions.
+
+1. Who may act on this record?
+2. May you set this field on it?
+
+`PATCH /posts/:id` - Has to answer both because on a write operation, the `authorId` field is a value which points to ownership, which
+answers question 1. If we let a user write the `authorId`, then we have allowed the user to rewrite who owns the record.
+FOr example, `pATCH /posts/5` with `{"content":"whatever","authorId":2}`, where Post is mine rewrites the Post to change
+the ownership to author number 2, who becomes the victim in this scenario. The difference is essentially instead of
+**reading** someone else's data, I am *writing* into their account where an audit trail will say it's theirs.
+
+This can get worse with something like a `PATCH` on `/users/:id` with `{"role": "ADMIN"}` which would allow a user to
+change a user's role to role admin if not correctly guarded against.
+
+`GET /posts` - Shows missing ownership does not necessarily equal an IDOR because there's no ID to tamper with. The where clause is the fix, rather than a guard.
+
+`DELETE /posts/:id` - 
 
 ### 5. Forced Browsing
 
