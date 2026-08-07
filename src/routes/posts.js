@@ -67,17 +67,9 @@ router.get("/:id", async (req, res, next) => {
 
 router.patch("/:id", async (req, res, next) => {
   const id = Number(req.params.id);
-
+  // Content to update post
   const { content } = req.body;
-
   console.log(content);
-
-  const update = await prisma.posts.update({
-    where: { id },
-    data: { content: content },
-  });
-
-  return res.status(200).json(update);
 
   // Validity check first before db request
   if (typeof id !== "number" || Number.isNaN(id)) {
@@ -88,6 +80,67 @@ router.patch("/:id", async (req, res, next) => {
   const requestingUser = await prisma.users.findUnique({
     where: { id: req.auth.id },
   });
+
+  // CHECK OWNERSHIP BEFORE UPDATING - Key difference between the GET and PATCH
+  const post = await prisma.posts.findUnique({
+    where: { id },
+  });
+
+  // If post doesn't exist, explicitly return error rather than having Prisma handle it
+  if (!post) return res.status(404).json({ error: "Not Found" });
+
+  // Is requesting user admin or owner of the resource
+  const isAdmin = requestingUser.role === "ADMIN";
+  const isOwner = requestingUser.id === post.authorId;
+  console.log(`Requesting user admin: ${isAdmin} and owner ${isOwner}`);
+
+  // Forbidden if not admin or owner, success otherwise
+  if (!isAdmin && !isOwner) return res.sendStatus(403);
+
+  // Update the post
+  const update = await prisma.posts.update({
+    where: { id },
+    data: { content: content },
+  });
+
+  return res.status(200).json(post);
+});
+
+router.delete("/:id", async (req, res, next) => {
+  const id = Number(req.params.id);
+
+  // Validity check first before db request
+  if (typeof id !== "number" || Number.isNaN(id)) {
+    return res.status(400).json({ error: "ID must be a valid number" });
+  }
+
+  // Who is requesting to delete this resource?
+  const requestingUser = await prisma.users.findUnique({
+    where: { id: req.auth.id },
+  });
+
+  // CHECK OWNERSHIP BEFORE UPDATING - Key difference between the GET and DELETE
+  const post = await prisma.posts.findUnique({
+    where: { id },
+  });
+
+  // If post doesn't exist, explicitly return error rather than having Prisma handle it
+  if (!post) return res.status(404).json({ error: "Not Found" });
+
+  // Is requesting user admin or owner of the resource
+  const isAdmin = requestingUser.role === "ADMIN";
+  const isOwner = requestingUser.id === post.authorId;
+  console.log(`Requesting user admin: ${isAdmin} and owner ${isOwner}`);
+
+  // Forbidden if not admin or owner, success otherwise
+  if (!isAdmin && !isOwner) return res.sendStatus(403);
+
+  // Update the post
+  const deletedPost = await prisma.posts.delete({
+    where: { id },
+  });
+
+  return res.status(200).json(post);
 });
 
 export default router;

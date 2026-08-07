@@ -80,8 +80,8 @@ a 403, defaulting to a deny so the route is essentially whitelisted.
 
 Similarly to Horizontal Privilege Escalation, IDOR is when a user changes an identity value to access some item or
 resource that they should not be allowed to receive. Specifically, IDOR is a mechanism behind Horizontal Privilege
-Escalation. For example, modifying an ID to view someone else's data is an IDOR vulnerability that resulted in Horizontal
-Privilege Escalation. Equally, an IDOR can result in vertical privilege escalation (Perhaps by changing
+Escalation. For example, modifying an ID to view someone else's data is an IDOR vulnerability that resulted in
+Horizontal Privilege Escalation. Equally, an IDOR can result in vertical privilege escalation (Perhaps by changing
 `?file=report.pdf` to `?file=admin_config.php`).
 
 **What did I do to address it?**
@@ -95,11 +95,11 @@ database. I then created another GET route at `/posts/:id` and created a similar
 
 **What is it?**
 
-Similarly to #3, Missing Ownership Checks have technically already been addressed on the read path. IDOR answers 'How did they reach the
-resource?', Horizontal Privilege Escalation answers 'What did they gain?' and Missing Ownership Check answers 'What's
-wrong in my code?'. Though it may seem like a separate item, really they're all part of the same thing which is an
-Access Control issue. They're separate concepts as they may not always coincide, such as the example above where
-changing `file=report.pdf` to `file=admin_config.php` is an IDOR producing **vertical escalation** rather than
+Similarly to #3, Missing Ownership Checks have technically already been addressed on the read path. IDOR answers 'How
+did they reach the resource?', Horizontal Privilege Escalation answers 'What did they gain?' and Missing Ownership Check
+answers 'What's wrong in my code?'. Though it may seem like a separate item, really they're all part of the same thing
+which is an Access Control issue. They're separate concepts as they may not always coincide, such as the example above
+where changing `file=report.pdf` to `file=admin_config.php` is an IDOR producing **vertical escalation** rather than
 horizontal
 
 **What did I do to address it?**
@@ -113,18 +113,23 @@ There are two ownership questions.
 1. Who may act on this record?
 2. May you set this field on it?
 
-`PATCH /posts/:id` - Has to answer both because on a write operation, the `authorId` field is a value which points to ownership, which
-answers question 1. If we let a user write the `authorId`, then we have allowed the user to rewrite who owns the record.
-FOr example, `pATCH /posts/5` with `{"content":"whatever","authorId":2}`, where Post is mine rewrites the Post to change
-the ownership to author number 2, who becomes the victim in this scenario. The difference is essentially instead of
-**reading** someone else's data, I am *writing* into their account where an audit trail will say it's theirs.
+`PATCH /posts/:id` - Has to answer both because on a write operation, the `authorId` field is a value which points to
+ownership, which answers question 1. If we let a user write the `authorId`, then we have allowed the user to rewrite who
+owns the record. FOr example, `pATCH /posts/5` with `{"content":"whatever","authorId":2}`, where Post is mine rewrites
+the Post to change the ownership to author number 2, who becomes the victim in this scenario. The difference is
+essentially instead of **reading** someone else's data, I am *writing* into their account where an audit trail will say
+it's theirs.
 
 This can get worse with something like a `PATCH` on `/users/:id` with `{"role": "ADMIN"}` which would allow a user to
 change a user's role to role admin if not correctly guarded against.
 
-`GET /posts` - Shows missing ownership does not necessarily equal an IDOR because there's no ID to tamper with. The where clause is the fix, rather than a guard.
+So first I created the basic route, receive `req.body`, `PATCH` the post with the content and return it. This is the
+broken version. To fix this
 
-`DELETE /posts/:id` - 
+`GET /posts` - Shows missing ownership does not necessarily equal an IDOR because there's no ID to tamper with. The
+where clause is the fix, rather than a guard.
+
+`DELETE /posts/:id` -
 
 ### 5. Forced Browsing
 
