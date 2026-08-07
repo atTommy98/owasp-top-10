@@ -37,98 +37,59 @@ router.post("/", async (req, res, next) => {
 });
 
 // Get a post by ID
-router.get("/:id", loadPost, async (req, res, next) => {
-  const id = Number(req.params.id);
+router.get(
+  "/:id",
+  loadPost,
+  requirePostOwnerOrAdmin,
+  async (req, res, next) => {
+    const post = req.post;
+    return res.send(post);
+  },
+);
 
-  // Validity check first before db request
-  if (typeof id !== "number" || Number.isNaN(id)) {
-    return res.status(400).json({ error: "ID must be a valid number" });
-  }
+router.patch(
+  "/:id",
+  loadPost,
+  requirePostOwnerOrAdmin,
+  async (req, res, next) => {
+    const post = req.post;
 
-  // Who is requesting this resource?
-  const requestingUser = await prisma.users.findUnique({
-    where: { id: req.auth.id },
-  });
+    // Content to update post
+    const { content } = req.body;
 
-  const post = await prisma.posts.findUnique({ where: { id } });
-  if (!post) return res.sendStatus(404);
+    if (!content || typeof content !== "string") {
+      return res.status(400).json({
+        error: "Content required or content should be a valid string",
+      });
+    }
 
-  // Is requesting user admin or owner of the resource
-  const isAdmin = requestingUser.role === "ADMIN";
-  const isOwner = requestingUser.id === post.authorId;
-  console.log(`Requesting user admin: ${isAdmin} and owner ${isOwner}`);
+    // Update the post
+    const updatedPost = await prisma.posts.update({
+      where: { id: post.id },
+      data: { content: content },
+    });
 
-  // Forbidden if not admin or owner, success otherwise
-  if (!isAdmin && !isOwner) return res.sendStatus(403);
-  if (isAdmin || isOwner) return res.send(post);
+    return res.status(200).json(updatedPost);
+  },
+);
 
-  // Deny by default
-  return res.sendStatus(403);
-});
+router.delete(
+  "/:id",
+  loadPost,
+  requirePostOwnerOrAdmin,
+  async (req, res, next) => {
+    const post = req.post;
 
-router.patch("/:id", loadPost, async (req, res, next) => {
-  const id = Number(req.params.id);
-  // Content to update post
-  const { content } = req.body;
+    // Delete the post
+    const deletedPost = await prisma.posts.delete({
+      where: { id: post.id },
+    });
 
-  if (!content || typeof content !== "string") {
+    // Return if successful
     return res
-      .status(400)
-      .json({ error: "Content required or content should be a valid string" });
-  }
-
-  console.log(content);
-
-  // Validity check first before db request
-  if (typeof id !== "number" || Number.isNaN(id)) {
-    return res.status(400).json({ error: "ID must be a valid number" });
-  }
-
-  // Who is requesting this resource?
-  const requestingUser = await prisma.users.findUnique({
-    where: { id: req.auth.id },
-  });
-
-  if (!requestingUser)
-    return res.status(404).json({ error: "Requesting User Not Found" });
-
-  // CHECK OWNERSHIP BEFORE UPDATING - Key difference between the GET and PATCH
-  const post = await prisma.posts.findUnique({
-    where: { id },
-  });
-
-  // If post doesn't exist, explicitly return error rather than having Prisma handle it
-  if (!post) return res.status(404).json({ error: "Post Not Found" });
-
-  // Is requesting user admin or owner of the resource
-  const isAdmin = requestingUser.role === "ADMIN";
-  const isOwner = requestingUser.id === post.authorId;
-  console.log(`Requesting user admin: ${isAdmin} and owner ${isOwner}`);
-
-  // Forbidden if not admin or owner, success otherwise
-  if (!isAdmin && !isOwner) return res.sendStatus(403);
-
-  // Update the post
-  const updatedPost = await prisma.posts.update({
-    where: { id },
-    data: { content: content },
-  });
-
-  return res.status(200).json(updatedPost);
-});
-
-router.delete("/:id", loadPost, requireOwnerOrAdmin, async (req, res, next) => {
-  const post = req.post;
-
-  // Delete the post
-  const deletedPost = await prisma.posts.delete({
-    where: { id: post.id },
-  });
-
-  // Return if successful
-  return res
-    .status(200)
-    .json({ post: deletedPost, msg: `Post ${post.id} successfully deleted` });
-});
+      .status(200)
+      .json({ post: deletedPost, msg: `Post ${post.id} successfully deleted` });
+  },
+);
 
 export default router;
